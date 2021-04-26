@@ -1,25 +1,6 @@
-FROM nvidia/cuda:10.2-devel-ubuntu18.04
+FROM nvidia/cuda:11.2.0-devel-ubuntu20.04 AS build-stage
 
-LABEL com.nvidia.volumes.needed="nvidia_driver"
-
-RUN apt-get update && apt-get install -y --no-install-recommends \
-        ocl-icd-libopencl1 \
-        clinfo && \
-    rm -rf /var/lib/apt/lists/*
-
-RUN mkdir -p /etc/OpenCL/vendors && \
-    echo "libnvidia-opencl.so.1" > /etc/OpenCL/vendors/nvidia.icd
-
-RUN echo "/usr/local/nvidia/lib" >> /etc/ld.so.conf.d/nvidia.conf && \
-    echo "/usr/local/nvidia/lib64" >> /etc/ld.so.conf.d/nvidia.conf
-
-ENV PATH /usr/local/nvidia/bin:${PATH}
-ENV LD_LIBRARY_PATH /usr/local/nvidia/lib:/usr/local/nvidia/lib64:${LD_LIBRARY_PATH}
-
-# nvidia-container-runtime
-ENV NVIDIA_VISIBLE_DEVICES all
-ENV NVIDIA_DRIVER_CAPABILITIES compute,utility
-################################ end nvidia opencl driver ################################
+ENV DEBIAN_FRONTEND=noninteractive
 
 ENV HASHCAT_VERSION        v6.1.1
 ENV HASHCAT_UTILS_VERSION  v1.9
@@ -27,20 +8,55 @@ ENV HCXTOOLS_VERSION       6.0.2
 ENV HCXDUMPTOOL_VERSION    6.0.6
 ENV HCXKEYS_VERSION        master
 
-# Update & install packages for installing hashcat
+# Update & install packages for building hashcat
 RUN apt-get update && \
-    apt-get install -y wget make clinfo build-essential git libcurl4-openssl-dev libssl-dev zlib1g-dev libcurl4-openssl-dev libssl-dev
+    apt-get install -y --no-install-recommends \
+        git libcurl4-openssl-dev libssl-dev zlib1g-dev libcurl4-openssl-dev libssl-dev
 
 WORKDIR /root
 
-RUN git clone https://github.com/hashcat/hashcat.git && cd hashcat && git checkout ${HASHCAT_VERSION} && make install -j4
+RUN git clone https://github.com/hashcat/hashcat.git \
+    && cd hashcat \
+    && git checkout ${HASHCAT_VERSION} \
+    && make install -j4
 
-RUN git clone https://github.com/hashcat/hashcat-utils.git && cd hashcat-utils/src && git checkout ${HASHCAT_UTILS_VERSION} && make
-RUN ln -s /root/hashcat-utils/src/cap2hccapx.bin /usr/bin/cap2hccapx
+RUN git clone https://github.com/hashcat/hashcat-utils.git \
+    && cd hashcat-utils/src \
+    && git checkout ${HASHCAT_UTILS_VERSION} \
+    && make
 
-RUN git clone https://github.com/ZerBea/hcxtools.git && cd hcxtools && git checkout ${HCXTOOLS_VERSION} && make install
+RUN git clone https://github.com/ZerBea/hcxtools.git \
+    && cd hcxtools \
+    && git checkout ${HCXTOOLS_VERSION} \
+    && make install
 
-RUN git clone https://github.com/ZerBea/hcxdumptool.git && cd hcxdumptool && git checkout ${HCXDUMPTOOL_VERSION} && make install
+RUN git clone https://github.com/ZerBea/hcxdumptool.git \
+    && cd hcxdumptool \
+    && git checkout ${HCXDUMPTOOL_VERSION} \
+    && make install
 
-RUN git clone https://github.com/hashcat/kwprocessor.git && cd kwprocessor && git checkout ${HCXKEYS_VERSION} && make
-RUN ln -s /root/kwprocessor/kwp /usr/bin/kwp
+RUN git clone https://github.com/hashcat/kwprocessor.git \
+    && cd kwprocessor \
+    && git checkout ${HCXKEYS_VERSION} \
+    && make
+
+
+################# runtime stage ################
+
+FROM nvidia/cuda:11.2.0-devel-ubuntu20.04
+
+WORKDIR /root
+
+RUN apt-get update && \
+    apt-get install -y --no-install-recommends \
+        git wget clinfo
+
+# For OpenCL support
+RUN mkdir -p /etc/OpenCL/vendors && \
+    echo "libnvidia-opencl.so.1" > /etc/OpenCL/vendors/nvidia.icd
+
+COPY --from=build-stage /usr/local/bin/* /root/kwprocessor/kwp /usr/local/bin/
+COPY --from=build-stage /root/hashcat-utils/src/cap2hccapx.bin /usr/local/bin/cap2hccapx
+COPY --from=build-stage /usr/local/share/hashcat /usr/local/share/hashcat
+COPY --from=build-stage /usr/local/share/doc/hashcat /usr/local/share/doc/hashcat
+COPY --from=build-stage /root/hashcat-utils/bin /root/hashcat-utils/bin
