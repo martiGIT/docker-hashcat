@@ -59,4 +59,4 @@ COPY --from=build-stage /usr/local/bin/* /root/kwprocessor/kwp /usr/local/bin/
 COPY --from=build-stage /root/hashcat-utils/src/cap2hccapx.bin /usr/local/bin/cap2hccapx
 COPY --from=build-stage /usr/local/share/hashcat /usr/local/share/hashcat
 COPY --from=build-stage /usr/local/share/doc/hashcat /usr/local/share/doc/hashcat
-COPY --from=build-stage /root/hashcat-utils/bin /root/hashcat-utils/bin
+COPY --from=build-stage /root/hashcat-utils/src/*.bin /root/hashcat-utils/src/*.pl /root/hashcat-utils/bin/
