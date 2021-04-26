@@ -9,8 +9,8 @@ ENV HCXDUMPTOOL_VERSION    6.0.6
 ENV HCXKEYS_VERSION        master
 
 # Update & install packages for building hashcat
-RUN apt-get update && \
-    apt-get install -y --no-install-recommends \
+RUN apt-get update \
+    && apt-get install -y --no-install-recommends \
         git libcurl4-openssl-dev libssl-dev zlib1g-dev libcurl4-openssl-dev libssl-dev
 
 WORKDIR /root
@@ -47,9 +47,10 @@ FROM nvidia/cuda:11.2.0-devel-ubuntu20.04
 
 WORKDIR /root
 
-RUN apt-get update && \
-    apt-get install -y --no-install-recommends \
-        git wget clinfo
+RUN apt-get update \
+    && apt-get install -y --no-install-recommends \
+        git wget clinfo p7zip-full \
+    && rm -rf /var/lib/apt/lists/*
 
 # For OpenCL support
 RUN mkdir -p /etc/OpenCL/vendors && \
@@ -60,3 +61,5 @@ COPY --from=build-stage /root/hashcat-utils/src/cap2hccapx.bin /usr/local/bin/ca
 COPY --from=build-stage /usr/local/share/hashcat /usr/local/share/hashcat
 COPY --from=build-stage /usr/local/share/doc/hashcat /usr/local/share/doc/hashcat
 COPY --from=build-stage /root/hashcat-utils/src/*.bin /root/hashcat-utils/src/*.pl /root/hashcat-utils/bin/
+
+LABEL maintainer="Sergey Cheperis"
