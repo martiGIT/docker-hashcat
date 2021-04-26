@@ -1,6 +1,6 @@
 # docker-hashcat 
 
-A fork of [dizcza/docker-hashcat](https://github.com/diczca/docker-hashcat) compiled for Ubuntu 20.04 and CUDA 11.2.
+A fork of [dizcza/docker-hashcat](https://github.com/dizcza/docker-hashcat) compiled for Ubuntu 20.04 and CUDA 11.2.
 
 Supports RTX 30 series cards in both CUDA and OpenCL modes.
 
