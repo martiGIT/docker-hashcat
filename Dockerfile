@@ -49,7 +49,7 @@ WORKDIR /root
 
 RUN apt-get update \
     && apt-get install -y --no-install-recommends \
-        git wget clinfo p7zip-full \
+        git wget clinfo p7zip-full nano \
     && rm -rf /var/lib/apt/lists/*
 
 # For OpenCL support
