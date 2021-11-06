@@ -7,7 +7,7 @@ Supports RTX 30 series cards in both CUDA and OpenCL modes.
 Compatible with Vast.ai.
 
 ```
-nvidia-docker run -it sergeycheperis/docker-hashcat
+nvidia-docker run -it 500farm/docker-hashcat
 ```
 
 Then inside the docker container run
