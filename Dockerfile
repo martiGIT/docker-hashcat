@@ -2,10 +2,10 @@ FROM nvidia/cuda:11.2.0-devel-ubuntu20.04 AS build-stage
 
 ENV DEBIAN_FRONTEND=noninteractive
 
-ENV HASHCAT_VERSION        v6.1.1
+ENV HASHCAT_VERSION        v6.2.3
 ENV HASHCAT_UTILS_VERSION  v1.9
-ENV HCXTOOLS_VERSION       6.0.2
-ENV HCXDUMPTOOL_VERSION    6.0.6
+ENV HCXTOOLS_VERSION       6.2.0
+ENV HCXDUMPTOOL_VERSION    6.2.0
 ENV HCXKEYS_VERSION        master
 
 # Update & install packages for building hashcat
